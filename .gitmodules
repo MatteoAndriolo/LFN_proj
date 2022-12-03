@@ -1,0 +1,3 @@
+[submodule "HNEEM"]
+	path = HNEEM
+	url = git@github.com:chaaamelon/HNEEM.git
