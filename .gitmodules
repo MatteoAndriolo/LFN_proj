@@ -1,0 +1,3 @@
+[submodule "OpenNE"]
+	path = OpenNE
+	url = git@github.com:thunlp/OpenNE.git
