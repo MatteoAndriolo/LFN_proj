@@ -2,27 +2,32 @@ import glob
 
 import networkx as nx
 import pandas as pd
+import logging as lg
 
 # TODO fix imports
 from openne import gf, graph, hope, lap, node2vec, sdne
 
 
-def prepare_dataset():
-    df = pd.read_csv('dataset.csv', delimiter='\t')
-    df = df.drop("Disease Name", axis=1)
+def prepare_dataset(namedataset):
+    df = pd.read_csv(namedataset, delimiter='\t')
+    #df = df.drop("# Disease(MESH)", axis=1)
     # used later to distinguish diseases column from genes one
-    df["# Disease ID"] = '#' + df["# Disease ID"]
+    #df["# Gene ID"] = '#' + df["# Gene"]
     df.to_csv("dataset.txt", header=None, index=None, sep=' ')
+    lg.info("prepare_dataset: dataset completed")
 
 
 def get_adj_matrix():
     df = pd.read_csv('dataset.txt', delimiter=' ', header=None)
+    lg.info("get_adj_matrix: dataset read")
     g = nx.from_pandas_edgelist(df, source=1, target=0)
+    lg.info("get_adj_matrix: networkx graph generated")
     return nx.adjacency_matrix(g), list(g.nodes())
 
 
 def get_hope(g):
     embeddings = hope.HOPE(graph=g, d=128)
+    lg.info("get_hope: embeddings generated")
     return embeddings
 
 
@@ -60,8 +65,12 @@ def get_embeddings(t):
       type accepted [hope, sdne, n2v, dw, gf, lap]
     """
     g = graph.Graph()
+    lg.info("get_embeddings: read_edgelist starting")
     g.read_edgelist("dataset.txt")
+    lg.info("get_embeddings: edgelist read")
 
+    
+    lg.info("get_embeddings: start generation of embeddings")
     if t == "hope":
         embeddings = get_hope(g)
     elif t == "sdne":
@@ -89,13 +98,15 @@ def get_embeddings(t):
 
 ################################################################################
 if __name__ == "__main__":
+    lg.basicConfig(level=lg.INFO)
     #gene_dis_matrix = np.matrix(
     #    np.loadtxt("./DG-Miner_miner-disease-gene.tsv",
     #               delimiter=',', dtype=int)
     #)
 
-    if "./dataset.txt" not in glob.glob("./*.txt"):
-        prepare_dataset()
+    namedataset="DG-Miner_miner-disease-gene.tsv"
+    if namedataset not in glob.glob("./*"):
+        prepare_dataset(namedataset)
 
     # needed to find labels of (disease,gene) pairs
     adj_matrix, nodes = get_adj_matrix()
